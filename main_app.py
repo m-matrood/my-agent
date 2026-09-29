@@ -16,7 +16,7 @@ except ImportError:
     HAS_PYPDF = False
 
 # ---------------------------------------------------------
-# 1. Page Configuration & Emerald Dark Theme
+# 1. Page Configuration & Emerald Dark Theme + Mobile Responsive
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Ultra AI Workspace",
@@ -110,6 +110,50 @@ st.markdown("""
         border: 1px solid rgba(52, 211, 153, 0.3);
         display: inline-block;
         margin-bottom: 12px;
+    }
+
+    /* ---------------------------------------------------------
+       Mobile Responsiveness Styles (شاشات الجوال < 768px)
+       --------------------------------------------------------- */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-left: 0.6rem !important;
+            padding-right: 0.6rem !important;
+            padding-top: 1rem !important;
+        }
+
+        .hero-container {
+            padding: 16px 10px !important;
+            border-radius: 14px !important;
+            margin-bottom: 12px !important;
+        }
+        .hero-title {
+            font-size: 1.4rem !important;
+        }
+        .hero-subtitle {
+            font-size: 0.78rem !important;
+        }
+
+        [data-testid="column"] {
+            width: 48% !important;
+            flex: 1 1 48% !important;
+            min-width: 48% !important;
+            margin-bottom: 6px !important;
+        }
+
+        .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
+            font-size: 0.8rem !important;
+            padding: 0.4rem 0.2rem !important;
+        }
+
+        [data-testid="stChatMessage"] {
+            padding: 0.8rem !important;
+            border-radius: 12px !important;
+        }
+
+        [data-testid="stChatInput"] {
+            margin-bottom: 5px !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
