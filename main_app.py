@@ -115,40 +115,52 @@ st.markdown("""
     /* ---------------------------------------------------------
        Mobile Responsiveness Styles (شاشات الجوال < 768px)
        --------------------------------------------------------- */
+    /* ---------------------------------------------------------
+       Mobile Responsiveness Styles (شاشات الجوال < 768px)
+       --------------------------------------------------------- */
     @media (max-width: 768px) {
         .block-container {
-            padding-left: 0.6rem !important;
-            padding-right: 0.6rem !important;
-            padding-top: 1rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            padding-top: 0.8rem !important;
         }
 
         .hero-container {
-            padding: 16px 10px !important;
-            border-radius: 14px !important;
-            margin-bottom: 12px !important;
+            padding: 14px 10px !important;
+            border-radius: 12px !important;
+            margin-bottom: 10px !important;
         }
         .hero-title {
-            font-size: 1.4rem !important;
+            font-size: 1.3rem !important;
         }
         .hero-subtitle {
-            font-size: 0.78rem !important;
+            font-size: 0.75rem !important;
         }
 
-        [data-testid="column"] {
-            width: 48% !important;
-            flex: 1 1 48% !important;
-            min-width: 48% !important;
-            margin-bottom: 6px !important;
+        /* السماح بالحاوي العلوي بتقسيم الأعمدة لعدة صفوف */
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
         }
 
+        /* إجبار كل زر/قائمة على أخذ نصف عرض الشاشة (زرين بكل صف) */
+        [data-testid="stColumn"], [data-testid="column"] {
+            width: 47% !important;
+            flex: 1 1 47% !important;
+            min-width: 47% !important;
+            margin-bottom: 4px !important;
+        }
+
+        /* تصغير الخط والمسافات لتناسب شاشة الجوال */
         .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
-            font-size: 0.8rem !important;
-            padding: 0.4rem 0.2rem !important;
+            font-size: 0.78rem !important;
+            padding: 0.35rem 0.2rem !important;
+            letter-spacing: -0.3px !important;
         }
 
         [data-testid="stChatMessage"] {
-            padding: 0.8rem !important;
-            border-radius: 12px !important;
+            padding: 0.7rem !important;
+            border-radius: 10px !important;
         }
 
         [data-testid="stChatInput"] {
