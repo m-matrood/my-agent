@@ -115,9 +115,6 @@ st.markdown("""
     /* ---------------------------------------------------------
        Mobile Responsiveness Styles (شاشات الجوال < 768px)
        --------------------------------------------------------- */
-    /* ---------------------------------------------------------
-       Mobile Responsiveness Styles (شاشات الجوال < 768px)
-       --------------------------------------------------------- */
     @media (max-width: 768px) {
         .block-container {
             padding-left: 0.5rem !important;
@@ -137,13 +134,11 @@ st.markdown("""
             font-size: 0.75rem !important;
         }
 
-        /* السماح بالحاوي العلوي بتقسيم الأعمدة لعدة صفوف */
         [data-testid="stHorizontalBlock"] {
             flex-wrap: wrap !important;
             gap: 6px !important;
         }
 
-        /* إجبار كل زر/قائمة على أخذ نصف عرض الشاشة (زرين بكل صف) */
         [data-testid="stColumn"], [data-testid="column"] {
             width: 47% !important;
             flex: 1 1 47% !important;
@@ -151,7 +146,6 @@ st.markdown("""
             margin-bottom: 4px !important;
         }
 
-        /* تصغير الخط والمسافات لتناسب شاشة الجوال */
         .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
             font-size: 0.78rem !important;
             padding: 0.35rem 0.2rem !important;
@@ -189,10 +183,10 @@ if not client:
     st.stop()
 
 PERSONAS = {
-    "General Assistant": "You are a fast, highly capable AI Agent. Help the user clearly and effectively.",
-    "Senior Developer": "You are an expert software engineer. Provide clean, robust code with clear comments.",
-    "Concise Mode": "Provide extremely direct, short, and accurate answers without unnecessary intro or filler text.",
-    "Academic Expert": "Provide structured, deep, and scholarly answers with step-by-step breakdowns and definitions."
+    "General Assistant": "You are a fast, highly capable AI Agent. Help the user clearly and effectively. IMPORTANT: Whenever you use search_web or search_images, you MUST append a section titled '📌 المصادر المعتمدة:' at the end of your response, listing the titles and markdown link URLs of all sources used.",
+    "Senior Developer": "You are an expert software engineer. Provide clean, robust code with clear comments. Always list source URLs at the end if web search is used.",
+    "Concise Mode": "Provide extremely direct, short, and accurate answers. Always append source links at the bottom if searched.",
+    "Academic Expert": "Provide structured, deep, and scholarly answers. Always cite and list sources with clickable URLs at the bottom."
 }
 
 if "messages" not in st.session_state:
@@ -245,14 +239,18 @@ def get_current_time() -> str:
 
 def search_web(query: str) -> str:
     try:
-        results = list(DDGS().text(query, max_results=3))
+        results = list(DDGS().text(query, max_results=4))
         if not results:
             return json.dumps({"result": "No search results found."})
-        short_results = [
-            {"title": item.get("title", ""), "snippet": item.get("body", "")}
+        formatted_results = [
+            {
+                "title": item.get("title", ""),
+                "snippet": item.get("body", ""),
+                "url": item.get("href", "")
+            }
             for item in results
         ]
-        return json.dumps(short_results, ensure_ascii=False)
+        return json.dumps(formatted_results, ensure_ascii=False)
     except Exception as e:
         return json.dumps({"error": str(e)})
 
@@ -262,7 +260,11 @@ def search_images(query: str) -> str:
         if not results:
             return json.dumps({"result": "No images found."})
         images = [
-            {"title": item.get("title", ""), "image_url": item.get("image", "")}
+            {
+                "title": item.get("title", ""),
+                "image_url": item.get("image", ""),
+                "source_url": item.get("url", "")
+            }
             for item in results
         ]
         return json.dumps(images, ensure_ascii=False)
@@ -301,7 +303,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "search_web",
-            "description": "Search the live internet for recent real-time text information",
+            "description": "Search the live internet for recent real-time text information. Always include a sources list with clickable URLs at the end of the final response when this tool is used.",
             "parameters": {
                 "type": "object",
                 "properties": {"query": {"type": "string"}},
@@ -313,7 +315,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "search_images",
-            "description": "Search the live internet for images. Use this whenever user asks for pictures or images.",
+            "description": "Search the live internet for images. Always include source links at the end.",
             "parameters": {
                 "type": "object",
                 "properties": {"query": {"type": "string"}},
