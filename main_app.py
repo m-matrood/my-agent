@@ -8,7 +8,7 @@ from ddgs import DDGS
 from dotenv import load_dotenv
 from PIL import Image
 
-# PDF support import check
+# التحقق من دعم قراءة ملفات PDF
 try:
     import pypdf
     HAS_PYPDF = True
@@ -16,10 +16,10 @@ except ImportError:
     HAS_PYPDF = False
 
 # ---------------------------------------------------------
-# 1. Page Configuration & Emerald Dark Theme + Mobile Responsive
+# 1. إعدادات الصفحة والتصميم العربي المائل لليمن (RTL)
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Ultra AI Workspace",
+    page_title="مساحة التفكير الذكية",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -27,10 +27,12 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
     
     html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-family: 'Tajawal', sans-serif !important;
+        direction: rtl;
+        text-align: right;
     }
     
     #MainMenu, footer, header, [data-testid="stSidebar"], [data-testid="collapsedControl"] {
@@ -43,7 +45,7 @@ st.markdown("""
         max-width: 1200px !important;
     }
 
-    /* Emerald Obsidian Hero Banner */
+    /* الهيدر الرئيسي */
     .hero-container {
         background: linear-gradient(135deg, #064e3b 0%, #022c22 40%, #0f172a 100%);
         padding: 24px 20px;
@@ -58,19 +60,18 @@ st.markdown("""
         font-size: 2.1rem;
         font-weight: 800;
         margin: 0;
-        letter-spacing: -0.5px;
         background: linear-gradient(90deg, #34d399, #06b6d4);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     .hero-subtitle {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: #a7f3d0;
         opacity: 0.9;
         margin-top: 6px;
     }
 
-    /* Chat Messages styling */
+    /* تنسيق فقاعات المحادثة */
     [data-testid="stChatMessage"] {
         border-radius: 16px;
         padding: 1.2rem;
@@ -79,10 +80,10 @@ st.markdown("""
         border: 1px solid rgba(16, 185, 129, 0.15);
     }
 
-    /* Interactive Controls - Optimized Padding & No-Wrap for Full Text Visibility */
+    /* تنسيق الأزرار والقوائم */
     .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
         border-radius: 12px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         width: 100% !important;
         padding: 0.45rem 0.4rem !important;
         font-size: 0.88rem !important;
@@ -102,10 +103,10 @@ st.markdown("""
     }
 
     .token-badge {
-        font-size: 0.82rem;
+        font-size: 0.85rem;
         color: #34d399;
         background: rgba(6, 78, 59, 0.5);
-        padding: 5px 14px;
+        padding: 6px 16px;
         border-radius: 20px;
         border: 1px solid rgba(52, 211, 153, 0.3);
         display: inline-block;
@@ -113,7 +114,7 @@ st.markdown("""
     }
 
     /* ---------------------------------------------------------
-       Mobile Responsiveness Styles (شاشات الجوال < 768px)
+       تنسيقات الجوال (< 768px)
        --------------------------------------------------------- */
     @media (max-width: 768px) {
         .block-container {
@@ -128,10 +129,10 @@ st.markdown("""
             margin-bottom: 10px !important;
         }
         .hero-title {
-            font-size: 1.3rem !important;
+            font-size: 1.4rem !important;
         }
         .hero-subtitle {
-            font-size: 0.75rem !important;
+            font-size: 0.78rem !important;
         }
 
         [data-testid="stHorizontalBlock"] {
@@ -149,7 +150,6 @@ st.markdown("""
         .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
             font-size: 0.78rem !important;
             padding: 0.35rem 0.2rem !important;
-            letter-spacing: -0.3px !important;
         }
 
         [data-testid="stChatMessage"] {
@@ -165,7 +165,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. Client Setup & State Initialization
+# 2. تهيئة العميل والشخصيات بالعربية
 # ---------------------------------------------------------
 load_dotenv()
 
@@ -179,18 +179,18 @@ def get_openai_client():
 client = get_openai_client()
 
 if not client:
-    st.error("⚠️ OpenAI API Key is missing. Please add it to your .env file or Streamlit Secrets.")
+    st.error("⚠️ مفتاح OpenAI API مفقود. يرجى إضافته إلى ملف .env أو إعدادات Streamlit Secrets.")
     st.stop()
 
 PERSONAS = {
-    "General Assistant": "You are a fast, highly capable AI Agent. Help the user clearly and effectively. IMPORTANT: Whenever you use search_web or search_images, you MUST append a section titled '📌 المصادر المعتمدة:' at the end of your response, listing the titles and markdown link URLs of all sources used.",
-    "Senior Developer": "You are an expert software engineer. Provide clean, robust code with clear comments. Always list source URLs at the end if web search is used.",
-    "Concise Mode": "Provide extremely direct, short, and accurate answers. Always append source links at the bottom if searched.",
-    "Academic Expert": "Provide structured, deep, and scholarly answers. Always cite and list sources with clickable URLs at the bottom."
+    "مساعد عام": "أنت مساعد ذكي وسريع للغاية. أجب على أسئلة المستخدم بوضوح ودقة. ملاحظة هامة: عند استخدام أداة البحث search_web أو search_images، يجب أن تنهي إجابتك دائماً بقسم بعنوان '📌 المصادر المعتمدة:' تذكر فيه عناوين المصادر وروابطها المباشرة.",
+    "مطور برمجيات": "أنت مهندس برمجيات خبير. قدم كوداً نقياً ومنظماً مع شرح واضح باللغة العربية. اذكر المصادر وروابطها في النهاية إذا تم استخدام البحث.",
+    "نمط مختصر": "قدم إجابات مباشرة وسريعة ودقيقة بدون مقدمات طويلة. اذكر روابط المصادر في الأسفل إن وجدت.",
+    "خبير أكاديمي": "قدم إجابات مفصلة ومنظمة بأسلوب علمي ودقيق. قم دائماً بالتوثيق وذكر المصادر بروابطها المباشرة في النهاية."
 }
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": PERSONAS["General Assistant"]}]
+    st.session_state.messages = [{"role": "system", "content": PERSONAS["مساعد عام"]}]
 if "total_tokens" not in st.session_state:
     st.session_state.total_tokens = 0
 if "uploaded_doc_text" not in st.session_state:
@@ -203,7 +203,7 @@ def extract_file_text(uploaded_file):
     filename = uploaded_file.name.lower()
     if filename.endswith(".pdf"):
         if not HAS_PYPDF:
-            return "[Error: pypdf library is not installed. Run `pip install pypdf` to support PDFs.]"
+            return "[خطأ: مكتبة pypdf غير مثبتة. قم بتشغيل `pip install pypdf` لدعم قراءة PDF.]"
         try:
             reader = pypdf.PdfReader(uploaded_file)
             text = ""
@@ -213,7 +213,7 @@ def extract_file_text(uploaded_file):
                     text += extracted + "\n"
             return text
         except Exception as e:
-            return f"[Error parsing PDF: {e}]"
+            return f"[خطأ في قراءة ملف PDF: {e}]"
     else:
         return uploaded_file.read().decode("utf-8", errors="ignore")
 
@@ -229,7 +229,7 @@ def generate_tts_audio(text: str):
         return None
 
 # ---------------------------------------------------------
-# 3. Agent Tools Setup
+# 3. إعداد أدوات البحث والوظائف
 # ---------------------------------------------------------
 def calculate_power(base: float, exponent: float) -> str:
     return json.dumps({"result": base ** exponent})
@@ -241,7 +241,7 @@ def search_web(query: str) -> str:
     try:
         results = list(DDGS().text(query, max_results=4))
         if not results:
-            return json.dumps({"result": "No search results found."})
+            return json.dumps({"result": "لم يتم العثور على نتائج بحث."})
         formatted_results = [
             {
                 "title": item.get("title", ""),
@@ -258,7 +258,7 @@ def search_images(query: str) -> str:
     try:
         results = list(DDGS().images(query, max_results=4))
         if not results:
-            return json.dumps({"result": "No images found."})
+            return json.dumps({"result": "لم يتم العثور على صور."})
         images = [
             {
                 "title": item.get("title", ""),
@@ -283,7 +283,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "calculate_power",
-            "description": "Calculate power of a base to exponent",
+            "description": "حساب القوة والأس للقام بالعمليات الحسابية المعقدة",
             "parameters": {
                 "type": "object",
                 "properties": {"base": {"type": "number"}, "exponent": {"type": "number"}},
@@ -295,7 +295,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_current_time",
-            "description": "Get current date and time",
+            "description": "جلب التاريخ والتوقيت الحالي",
             "parameters": {"type": "object", "properties": {}}
         }
     },
@@ -303,7 +303,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "search_web",
-            "description": "Search the live internet for recent real-time text information. Always include a sources list with clickable URLs at the end of the final response when this tool is used.",
+            "description": "البحث في شبكة الإنترنت عن معلومات وأخبار محدثة. يجب عليك دائماً طباعة قائمة المصادر مع الروابط في نهاية الإجابة.",
             "parameters": {
                 "type": "object",
                 "properties": {"query": {"type": "string"}},
@@ -315,7 +315,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "search_images",
-            "description": "Search the live internet for images. Always include source links at the end.",
+            "description": "البحث في الإنترنت عن الصور المباشرة.",
             "parameters": {
                 "type": "object",
                 "properties": {"query": {"type": "string"}},
@@ -331,19 +331,19 @@ def get_optimized_messages():
     return [system_msg] + recent_msgs
 
 # ---------------------------------------------------------
-# 4. Header & Token Counter Badge
+# 4. الواجهة الرئيسية باللغة العربية
 # ---------------------------------------------------------
 st.markdown("""
 <div class="hero-container">
-    <div class="hero-title">⚡ Ultra AI Workspace</div>
-    <div class="hero-subtitle">Multi-Modal Workspace: Web Search, Images, PDF Documents, Voice & Vision</div>
+    <div class="hero-title">⚡ مساحة التفكير الذكية</div>
+    <div class="hero-subtitle">بيئة عمل متكاملة: بحث في الإنترنت، تحليل الصور والمستندات، الصوت والتفاعل المباشر</div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown(f'<div class="token-badge">📊 Total Session Tokens Used: <b>{st.session_state.total_tokens:,}</b></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="token-badge">📊 إجمالي الرموز (Tokens) المستهلكة: <b>{st.session_state.total_tokens:,}</b></div>', unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 5. Render Message History
+# 5. عرض سجل المحادثات
 # ---------------------------------------------------------
 for msg in st.session_state.messages:
     if isinstance(msg, dict):
@@ -367,42 +367,42 @@ for msg in st.session_state.messages:
                             st.image(item.get("image_url", {}).get("url"), width=300)
 
 # ---------------------------------------------------------
-# 6. Expanded Action Bar Controls Dock
+# 6. شريط التحكم والأدوات العلوية بالعربية
 # ---------------------------------------------------------
 with st.container(border=True):
     col1, col2, col3, col4, col5, col6, col7 = st.columns([1.5, 1.5, 1.5, 1.8, 2.3, 1.4, 1.4])
 
     with col1:
-        with st.popover("🖼️ Image", use_container_width=True):
-            uploaded_image = st.file_uploader("Attach image for vision", type=["png", "jpg", "jpeg"])
+        with st.popover("🖼️ صورة", use_container_width=True):
+            uploaded_image = st.file_uploader("ارفق صورة للتحليل", type=["png", "jpg", "jpeg"])
             if uploaded_image:
-                st.image(Image.open(uploaded_image), caption="Attached", use_container_width=True)
+                st.image(Image.open(uploaded_image), caption="الصورة المرفقة", use_container_width=True)
                 st.session_state.uploaded_img_data = uploaded_image
 
     with col2:
-        with st.popover("📄 File", use_container_width=True):
-            uploaded_doc = st.file_uploader("Attach PDF or Text file", type=["pdf", "txt", "md", "py", "json"])
+        with st.popover("📄 ملف", use_container_width=True):
+            uploaded_doc = st.file_uploader("ارفق ملف PDF أو نصي", type=["pdf", "txt", "md", "py", "json"])
             if uploaded_doc:
                 extracted_text = extract_file_text(uploaded_doc)
                 st.session_state.uploaded_doc_text = extracted_text
-                st.success("Document loaded successfully!")
+                st.success("تم تحميل المستند بنجاح!")
 
     with col3:
-        with st.popover("🎙️ Voice", use_container_width=True):
-            audio_val = st.audio_input("Record audio input")
+        with st.popover("🎙️ صوت", use_container_width=True):
+            audio_val = st.audio_input("سجل رسالة صوتية")
 
     with col4:
-        with st.popover("⚙️ Settings", use_container_width=True):
-            selected_persona = st.selectbox("AI Persona", options=list(PERSONAS.keys()), index=0)
+        with st.popover("⚙️ الإعدادات", use_container_width=True):
+            selected_persona = st.selectbox("شخصية الذكاء الاصطناعي", options=list(PERSONAS.keys()), index=0)
             st.session_state.messages[0]["content"] = PERSONAS[selected_persona]
             
-            temperature_val = st.slider("Temperature (Creativity)", min_value=0.0, max_value=1.0, value=0.7, step=0.1)
-            max_tokens_val = st.slider("Max Output Tokens", min_value=250, max_value=4000, value=1000, step=250)
-            enable_tts = st.checkbox("Enable Voice Responses (TTS)", value=False)
+            temperature_val = st.slider("درجة الإبداع (Temperature)", min_value=0.0, max_value=1.0, value=0.7, step=0.1)
+            max_tokens_val = st.slider("الحد الأقصى للكلمات", min_value=250, max_value=4000, value=1000, step=250)
+            enable_tts = st.checkbox("تفعيل الرد الصوتي (TTS)", value=False)
 
     with col5:
         selected_engine = st.selectbox(
-            "Model Engine",
+            "محرك النموذج",
             options=["gpt-4o-mini", "gpt-4o", "o1-mini"],
             index=0,
             label_visibility="collapsed"
@@ -415,7 +415,7 @@ with st.container(border=True):
             indent=2
         )
         st.download_button(
-            label="📥 Save",
+            label="📥 حفظ",
             data=chat_export_data,
             file_name=f"chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             mime="application/json",
@@ -423,19 +423,19 @@ with st.container(border=True):
         )
 
     with col7:
-        if st.button("🗑️ Clear", use_container_width=True):
+        if st.button("🗑️ مسح", use_container_width=True):
             st.session_state.messages = [{"role": "system", "content": PERSONAS[selected_persona]}]
             st.session_state.uploaded_img_data = None
             st.session_state.uploaded_doc_text = None
             st.rerun()
 
-chat_input_val = st.chat_input("Ask a question, request web search, or analyze images & files...")
+chat_input_val = st.chat_input("اكتب سؤالك، اطلب بحثاً في الإنترنت، أو قم بتحليل الملفات والصور...")
 
 # ---------------------------------------------------------
-# 7. Core Request Processing
+# 7. معالجة طلبات المستخدم
 # ---------------------------------------------------------
 if 'audio_val' in locals() and audio_val and "audio_processed" not in st.session_state:
-    with st.spinner("⚡ Transcribing audio..."):
+    with st.spinner("⚡ جاري تحويل الصوت إلى نص..."):
         try:
             transcription = client.audio.transcriptions.create(
                 model="whisper-1", 
@@ -444,14 +444,14 @@ if 'audio_val' in locals() and audio_val and "audio_processed" not in st.session
             chat_input_val = transcription.text
             st.session_state.audio_processed = True
         except Exception as e:
-            st.error(f"Audio error: {e}")
+            st.error(f"خطأ في معالجة الصوت: {e}")
 
 user_input_text = chat_input_val
 
 if user_input_text:
     if st.session_state.get("uploaded_doc_text"):
         doc_excerpt = st.session_state.uploaded_doc_text[:4000]
-        user_input_text = "📄 [Attached File Content]:\n```\n" + doc_excerpt + "\n```\n\n" + user_input_text
+        user_input_text = "📄 [محتوى الملف المرفق]:\n```\n" + doc_excerpt + "\n```\n\n" + user_input_text
         st.session_state.uploaded_doc_text = None
 
     if st.session_state.get("uploaded_img_data"):
@@ -505,7 +505,7 @@ if user_input_text:
                     fn_name = tool_call.function.name
                     fn_args = json.loads(tool_call.function.arguments)
                     
-                    with st.status(f"⚡ Executing tool `{fn_name}`...", expanded=False):
+                    with st.status(f"⚡ جاري تشغيل أداة `{fn_name}`...", expanded=False):
                         st.write(fn_args)
                         
                     if fn_name in available_functions:
@@ -549,4 +549,4 @@ if user_input_text:
                     st.audio(audio_bytes, format="audio/mp3")
 
         except Exception as e:
-            st.error(f"❌ Processing error: {e}")
+            st.error(f"❌ حدث خطأ أثناء المعالجة: {e}")
