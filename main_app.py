@@ -8,97 +8,178 @@ from ddgs import DDGS
 from dotenv import load_dotenv
 from PIL import Image
 
+# PDF support import check
+try:
+    import pypdf
+    HAS_PYPDF = True
+except ImportError:
+    HAS_PYPDF = False
+
 # ---------------------------------------------------------
-# 1. Page Configuration & Dynamic Responsive Theme
+# 1. Page Configuration & Emerald Dark Theme
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="AI Agent Workspace",
+    page_title="Ultra AI Workspace",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Responsive CSS using Streamlit's native theme variables
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     
-    /* Header Container - Adapts to Light/Dark Mode */
-    .header-container {
-        background-color: var(--secondary-background-color);
-        color: var(--text-color);
-        padding: 24px;
-        border-radius: 12px;
-        border: 1px solid rgba(128, 128, 128, 0.2);
-        margin-bottom: 24px;
+    #MainMenu, footer, header, [data-testid="stSidebar"], [data-testid="collapsedControl"] {
+        display: none !important;
     }
-    .header-title {
-        font-size: 1.75rem;
-        font-weight: 700;
+
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 3rem !important;
+        max-width: 1200px !important;
+    }
+
+    /* Emerald Obsidian Hero Banner */
+    .hero-container {
+        background: linear-gradient(135deg, #064e3b 0%, #022c22 40%, #0f172a 100%);
+        padding: 24px 20px;
+        border-radius: 20px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.25);
+        margin-bottom: 20px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .hero-title {
+        font-size: 2.1rem;
+        font-weight: 800;
         margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        letter-spacing: -0.5px;
+        background: linear-gradient(90deg, #34d399, #06b6d4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-    .header-subtitle {
-        font-size: 0.95rem;
-        opacity: 0.8;
+    .hero-subtitle {
+        font-size: 0.9rem;
+        color: #a7f3d0;
+        opacity: 0.9;
         margin-top: 6px;
     }
 
-    /* Badges Container */
-    .badge-container {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 8px;
+    /* Chat Messages styling */
+    [data-testid="stChatMessage"] {
+        border-radius: 16px;
+        padding: 1.2rem;
+        margin-bottom: 0.8rem;
+        background-color: #0f172a;
+        border: 1px solid rgba(16, 185, 129, 0.15);
     }
-    .badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.3px;
+
+    /* Interactive Controls - Optimized Padding & No-Wrap for Full Text Visibility */
+    .stButton>button, [data-testid="stPopover"]>button, [data-testid="stDownloadButton"]>button {
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        padding: 0.45rem 0.4rem !important;
+        font-size: 0.88rem !important;
+        white-space: nowrap !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        transition: all 0.2s ease-in-out;
     }
-    .badge-model {
-        background-color: #3b82f6;
-        color: #ffffff;
+    .stButton>button:hover, [data-testid="stPopover"]>button:hover, [data-testid="stDownloadButton"]>button:hover {
+        border-color: #10b981 !important;
+        color: #10b981 !important;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
     }
-    .badge-status {
-        background-color: #10b981;
-        color: #ffffff;
+
+    [data-testid="stChatInput"] {
+        border-radius: 20px !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    }
+
+    .token-badge {
+        font-size: 0.82rem;
+        color: #34d399;
+        background: rgba(6, 78, 59, 0.5);
+        padding: 5px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        display: inline-block;
+        margin-bottom: 12px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 2. Environment & API Key Setup
+# 2. Client Setup & State Initialization
 # ---------------------------------------------------------
 load_dotenv()
 
-api_key = os.getenv("OPENAI_API_KEY")
+@st.cache_resource
+def get_openai_client():
+    key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+    if not key or "YOUR_KEY" in key:
+        return None
+    return OpenAI(api_key=key)
 
-if not api_key:
-    try:
-        api_key = st.secrets["OPENAI_API_KEY"]
-    except Exception:
-        api_key = None
+client = get_openai_client()
 
-if not api_key or "YOUR_KEY" in api_key:
-    st.error("⚠️ OpenAI API Key not found. Please set it in your .env file or Streamlit Secrets.")
+if not client:
+    st.error("⚠️ OpenAI API Key is missing. Please add it to your .env file or Streamlit Secrets.")
     st.stop()
 
-client = OpenAI(api_key=api_key)
+PERSONAS = {
+    "General Assistant": "You are a fast, highly capable AI Agent. Help the user clearly and effectively.",
+    "Senior Developer": "You are an expert software engineer. Provide clean, robust code with clear comments.",
+    "Concise Mode": "Provide extremely direct, short, and accurate answers without unnecessary intro or filler text.",
+    "Academic Expert": "Provide structured, deep, and scholarly answers with step-by-step breakdowns and definitions."
+}
+
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "system", "content": PERSONAS["General Assistant"]}]
+if "total_tokens" not in st.session_state:
+    st.session_state.total_tokens = 0
+if "uploaded_doc_text" not in st.session_state:
+    st.session_state.uploaded_doc_text = None
 
 def encode_image(image_file):
     return base64.b64encode(image_file.getvalue()).decode('utf-8')
 
+def extract_file_text(uploaded_file):
+    filename = uploaded_file.name.lower()
+    if filename.endswith(".pdf"):
+        if not HAS_PYPDF:
+            return "[Error: pypdf library is not installed. Run `pip install pypdf` to support PDFs.]"
+        try:
+            reader = pypdf.PdfReader(uploaded_file)
+            text = ""
+            for page in reader.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    text += extracted + "\n"
+            return text
+        except Exception as e:
+            return f"[Error parsing PDF: {e}]"
+    else:
+        return uploaded_file.read().decode("utf-8", errors="ignore")
+
+def generate_tts_audio(text: str):
+    try:
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=text[:1000]
+        )
+        return response.content
+    except Exception:
+        return None
+
 # ---------------------------------------------------------
-# 3. Agent Tools Definition
+# 3. Agent Tools Setup
 # ---------------------------------------------------------
 def calculate_power(base: float, exponent: float) -> str:
     return json.dumps({"result": base ** exponent})
@@ -119,10 +200,24 @@ def search_web(query: str) -> str:
     except Exception as e:
         return json.dumps({"error": str(e)})
 
+def search_images(query: str) -> str:
+    try:
+        results = list(DDGS().images(query, max_results=4))
+        if not results:
+            return json.dumps({"result": "No images found."})
+        images = [
+            {"title": item.get("title", ""), "image_url": item.get("image", "")}
+            for item in results
+        ]
+        return json.dumps(images, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
 available_functions = {
     "calculate_power": calculate_power,
     "get_current_time": get_current_time,
-    "search_web": search_web
+    "search_web": search_web,
+    "search_images": search_images
 }
 
 tools = [
@@ -150,7 +245,19 @@ tools = [
         "type": "function",
         "function": {
             "name": "search_web",
-            "description": "Search the live internet for recent real-time information",
+            "description": "Search the live internet for recent real-time text information",
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_images",
+            "description": "Search the live internet for images. Use this whenever user asks for pictures or images.",
             "parameters": {
                 "type": "object",
                 "properties": {"query": {"type": "string"}},
@@ -160,91 +267,117 @@ tools = [
     }
 ]
 
-MODEL_NAME = "gpt-4o-mini"
-
-# Initialize state
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "system", "content": "You are a helpful AI Agent with internet access via tools. Answer clearly in English."}
-    ]
+def get_optimized_messages():
+    system_msg = st.session_state.messages[0]
+    recent_msgs = st.session_state.messages[1:][-10:]
+    return [system_msg] + recent_msgs
 
 # ---------------------------------------------------------
-# 4. Sidebar Controls & Attachments
-# ---------------------------------------------------------
-send_image_triggered = False
-
-with st.sidebar:
-    st.markdown("### ⚙️ Control Panel")
-    
-    if st.button("🗑️ Clear Conversation", use_container_width=True, type="secondary"):
-        st.session_state.messages = [
-            {"role": "system", "content": "You are a helpful AI Agent with internet access via tools. Answer clearly in English."}
-        ]
-        st.session_state.last_tool = None
-        st.session_state.uploaded_img_data = None
-        st.rerun()
-        
-    st.markdown("---")
-    st.markdown("### 📎 Media Attachments")
-    
-    uploaded_image = st.file_uploader("Upload Image (Vision Analysis)", type=["png", "jpg", "jpeg"])
-    if uploaded_image:
-        image = Image.open(uploaded_image)
-        st.image(image, caption="Attached Image", use_container_width=True)
-        st.session_state.uploaded_img_data = uploaded_image
-        
-        # Express button to analyze image immediately
-        if st.button("📤 Send Image for Analysis", use_container_width=True, type="primary"):
-            send_image_triggered = True
-
-    st.write("")
-    audio_val = st.audio_input("Record Voice Message")
-
-    st.markdown("---")
-    st.markdown("### 📊 System Status")
-    st.markdown("""
-        <div class="badge-container">
-            <span class="badge badge-model">GPT-4o-mini</span>
-            <span class="badge badge-status">Search Active</span>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.write("")
-    if "last_tool" in st.session_state and st.session_state.last_tool:
-        st.info(f"🛠️ **Last Executed Tool:**\n`{st.session_state.last_tool}`")
-
-# ---------------------------------------------------------
-# 5. Header Area
+# 4. Header & Token Counter Badge
 # ---------------------------------------------------------
 st.markdown("""
-<div class="header-container">
-    <div class="header-title">⚡ AI Agent Workspace</div>
-    <div class="header-subtitle">Smart assistant with multi-modal capabilities (Web Search, Math, Vision & Voice Transcription).</div>
+<div class="hero-container">
+    <div class="hero-title">⚡ Ultra AI Workspace</div>
+    <div class="hero-subtitle">Multi-Modal Workspace: Web Search, Images, PDF Documents, Voice & Vision</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Render chat history
+st.markdown(f'<div class="token-badge">📊 Total Session Tokens Used: <b>{st.session_state.total_tokens:,}</b></div>', unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# 5. Render Message History
+# ---------------------------------------------------------
 for msg in st.session_state.messages:
-    if msg["role"] != "system" and "content" in msg and msg["content"]:
-        avatar = "🧑‍💻" if msg["role"] == "user" else "🤖"
-        with st.chat_message(msg["role"], avatar=avatar):
-            if isinstance(msg["content"], str):
-                st.write(msg["content"])
-            elif isinstance(msg["content"], list):
-                for item in msg["content"]:
-                    if item.get("type") == "text":
-                        st.write(item.get("text"))
-                    elif item.get("type") == "image_url":
-                        st.image(item.get("image_url", {}).get("url"), caption="Uploaded Image", width=300)
+    if isinstance(msg, dict):
+        role = msg.get("role")
+        content = msg.get("content")
+    else:
+        role = getattr(msg, "role", None)
+        content = getattr(msg, "content", None)
+
+    if role and role not in ["system", "tool"] and content:
+        avatar = "🧑‍💻" if role == "user" else "⚡"
+        with st.chat_message(role, avatar=avatar):
+            if isinstance(content, str):
+                st.write(content)
+            elif isinstance(content, list):
+                for item in content:
+                    if isinstance(item, dict):
+                        if item.get("type") == "text":
+                            st.write(item.get("text"))
+                        elif item.get("type") == "image_url":
+                            st.image(item.get("image_url", {}).get("url"), width=300)
 
 # ---------------------------------------------------------
-# 6. Inputs & Processing Logic
+# 6. Expanded Action Bar Controls Dock
 # ---------------------------------------------------------
-chat_input_val = st.chat_input("Ask a question, calculate math, or describe the image...")
+with st.container(border=True):
+    col1, col2, col3, col4, col5, col6, col7 = st.columns([1.5, 1.5, 1.5, 1.8, 2.3, 1.4, 1.4])
 
-# Voice Transcription
-if audio_val and "audio_processed" not in st.session_state:
-    with st.spinner("🎙️ Transcribing audio..."):
+    with col1:
+        with st.popover("🖼️ Image", use_container_width=True):
+            uploaded_image = st.file_uploader("Attach image for vision", type=["png", "jpg", "jpeg"])
+            if uploaded_image:
+                st.image(Image.open(uploaded_image), caption="Attached", use_container_width=True)
+                st.session_state.uploaded_img_data = uploaded_image
+
+    with col2:
+        with st.popover("📄 File", use_container_width=True):
+            uploaded_doc = st.file_uploader("Attach PDF or Text file", type=["pdf", "txt", "md", "py", "json"])
+            if uploaded_doc:
+                extracted_text = extract_file_text(uploaded_doc)
+                st.session_state.uploaded_doc_text = extracted_text
+                st.success("Document loaded successfully!")
+
+    with col3:
+        with st.popover("🎙️ Voice", use_container_width=True):
+            audio_val = st.audio_input("Record audio input")
+
+    with col4:
+        with st.popover("⚙️ Settings", use_container_width=True):
+            selected_persona = st.selectbox("AI Persona", options=list(PERSONAS.keys()), index=0)
+            st.session_state.messages[0]["content"] = PERSONAS[selected_persona]
+            
+            temperature_val = st.slider("Temperature (Creativity)", min_value=0.0, max_value=1.0, value=0.7, step=0.1)
+            max_tokens_val = st.slider("Max Output Tokens", min_value=250, max_value=4000, value=1000, step=250)
+            enable_tts = st.checkbox("Enable Voice Responses (TTS)", value=False)
+
+    with col5:
+        selected_engine = st.selectbox(
+            "Model Engine",
+            options=["gpt-4o-mini", "gpt-4o", "o1-mini"],
+            index=0,
+            label_visibility="collapsed"
+        )
+
+    with col6:
+        chat_export_data = json.dumps(
+            [m for m in st.session_state.messages if isinstance(m, dict) and m.get("role") != "system"],
+            ensure_ascii=False,
+            indent=2
+        )
+        st.download_button(
+            label="📥 Save",
+            data=chat_export_data,
+            file_name=f"chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            use_container_width=True
+        )
+
+    with col7:
+        if st.button("🗑️ Clear", use_container_width=True):
+            st.session_state.messages = [{"role": "system", "content": PERSONAS[selected_persona]}]
+            st.session_state.uploaded_img_data = None
+            st.session_state.uploaded_doc_text = None
+            st.rerun()
+
+chat_input_val = st.chat_input("Ask a question, request web search, or analyze images & files...")
+
+# ---------------------------------------------------------
+# 7. Core Request Processing
+# ---------------------------------------------------------
+if 'audio_val' in locals() and audio_val and "audio_processed" not in st.session_state:
+    with st.spinner("⚡ Transcribing audio..."):
         try:
             transcription = client.audio.transcriptions.create(
                 model="whisper-1", 
@@ -253,21 +386,16 @@ if audio_val and "audio_processed" not in st.session_state:
             chat_input_val = transcription.text
             st.session_state.audio_processed = True
         except Exception as e:
-            st.error(f"Error processing audio: {e}")
+            st.error(f"Audio error: {e}")
 
-# Determine if we should process input
 user_input_text = chat_input_val
-should_process = False
 
-if send_image_triggered and st.session_state.get("uploaded_img_data"):
-    should_process = True
-    if not user_input_text:
-        user_input_text = "Please analyze and describe this image."
-elif user_input_text:
-    should_process = True
+if user_input_text:
+    if st.session_state.get("uploaded_doc_text"):
+        doc_excerpt = st.session_state.uploaded_doc_text[:4000]
+        user_input_text = "📄 [Attached File Content]:\n```\n" + doc_excerpt + "\n```\n\n" + user_input_text
+        st.session_state.uploaded_doc_text = None
 
-# Process Input
-if should_process:
     if st.session_state.get("uploaded_img_data"):
         base64_img = encode_image(st.session_state.uploaded_img_data)
         user_content = [
@@ -286,52 +414,81 @@ if should_process:
     with st.chat_message("user", avatar="🧑‍💻"):
         if isinstance(user_content, list):
             st.write(user_input_text)
-            st.image(user_content[1]["image_url"]["url"], caption="Uploaded Image", width=300)
+            st.image(user_content[1]["image_url"]["url"], width=300)
         else:
             st.write(user_content)
 
-    with st.chat_message("assistant", avatar="🤖"):
-        with st.spinner("Processing request..."):
-            try:
-                response = client.chat.completions.create(
-                    model=MODEL_NAME,
-                    messages=st.session_state.messages,
-                    tools=tools,
-                    tool_choice="auto",
-                    max_tokens=600
-                )
+    with st.chat_message("assistant", avatar="⚡"):
+        try:
+            supports_tools = selected_engine not in ["o1-mini", "o1"]
 
-                response_message = response.choices[0].message
+            api_args = {
+                "model": selected_engine,
+                "messages": get_optimized_messages(),
+                "max_tokens": max_tokens_val
+            }
+
+            if supports_tools:
+                api_args["tools"] = tools
+                api_args["tool_choice"] = "auto"
+                api_args["temperature"] = temperature_val
+
+            initial_response = client.chat.completions.create(**api_args)
+            
+            if hasattr(initial_response, 'usage') and initial_response.usage:
+                st.session_state.total_tokens += initial_response.usage.total_tokens
+
+            response_message = initial_response.choices[0].message
+
+            if supports_tools and response_message.tool_calls:
+                st.session_state.messages.append(response_message.model_dump())
                 
-                if response_message.tool_calls:
-                    st.session_state.messages.append(response_message)
+                for tool_call in response_message.tool_calls:
+                    fn_name = tool_call.function.name
+                    fn_args = json.loads(tool_call.function.arguments)
                     
-                    for tool_call in response_message.tool_calls:
-                        fn_name = tool_call.function.name
-                        fn_args = json.loads(tool_call.function.arguments)
+                    with st.status(f"⚡ Executing tool `{fn_name}`...", expanded=False):
+                        st.write(fn_args)
                         
-                        st.session_state.last_tool = fn_name
-                        
-                        if fn_name in available_functions:
-                            output = available_functions[fn_name](**fn_args)
-                            st.session_state.messages.append({
-                                "tool_call_id": tool_call.id,
-                                "role": "tool",
-                                "name": fn_name,
-                                "content": output
-                            })
+                    if fn_name in available_functions:
+                        output = available_functions[fn_name](**fn_args)
+                        st.session_state.messages.append({
+                            "tool_call_id": tool_call.id,
+                            "role": "tool",
+                            "name": fn_name,
+                            "content": output
+                        })
 
-                    final_res = client.chat.completions.create(
-                        model=MODEL_NAME,
-                        messages=st.session_state.messages,
-                        max_tokens=600
-                    )
-                    reply = final_res.choices[0].message.content
-                else:
-                    reply = response_message.content
+                stream_args = {
+                    "model": selected_engine,
+                    "messages": get_optimized_messages(),
+                    "stream": True,
+                    "max_tokens": max_tokens_val
+                }
+                if supports_tools:
+                    stream_args["temperature"] = temperature_val
 
-                st.write(reply)
-                st.session_state.messages.append({"role": "assistant", "content": reply})
+                stream = client.chat.completions.create(**stream_args)
+                reply = st.write_stream(stream)
+            else:
+                stream_args = {
+                    "model": selected_engine,
+                    "messages": get_optimized_messages(),
+                    "stream": True,
+                    "max_tokens": max_tokens_val
+                }
+                if supports_tools:
+                    stream_args["temperature"] = temperature_val
 
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
+                stream = client.chat.completions.create(**stream_args)
+                reply = st.write_stream(stream)
+
+            st.session_state.messages.append({"role": "assistant", "content": reply})
+
+            if 'enable_tts' in locals() and enable_tts and reply:
+                audio_bytes = generate_tts_audio(reply)
+                if audio_bytes:
+                    st.audio(audio_bytes, format="audio/mp3")
+
+        except Exception as e:
+            st.error(f"❌ Processing error: {e}")
