@@ -19,7 +19,7 @@ except ImportError:
 # 1. Page Configuration & Emerald Dark Theme + Mobile Responsive
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="Ultra AI Workspace",
+    page_title="Ultra AI Agent Workspace",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
