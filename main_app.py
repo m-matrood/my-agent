@@ -335,8 +335,8 @@ def get_optimized_messages():
 # ---------------------------------------------------------
 st.markdown("""
 <div class="hero-container">
-    <div class="hero-title">⚡ Ultra AI Workspace</div>
-    <div class="hero-subtitle">Multi-Modal Workspace: Web Search, Images, PDF Documents, Voice & Vision</div>
+    <div class="hero-title">⚡ Ultra AI Agent Workspace</div>
+    <div class="hero-subtitle">Multi-Modal Agent Workspace: Web Search, Images, PDF Documents, Voice & Vision</div>
 </div>
 """, unsafe_allow_html=True)
 
